@@ -1,0 +1,204 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300..900;1,14..32,400&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --app-bg: #F8FAFC;
+  --surface: #FFFFFF;
+  --ink: #0F172A;
+  --ink-2: #475569;
+  --ink-3: #64748B;
+  --ink-4: #94A3B8;
+  --sky-lightest: #F0F9FF;
+  --sky-light: #E0F2FE;
+  --sky: #0EA5E9;
+  --sky-deep: #0369A1;
+  --line: rgba(226, 232, 240, 0.85);
+  --shadow-ethereal: 0 4px 20px rgba(14, 165, 233, 0.05), 0 1px 2px rgba(15, 23, 42, 0.03);
+  --shadow-lift: 0 14px 36px rgba(14, 165, 233, 0.12), 0 2px 6px rgba(15, 23, 42, 0.04);
+  --shadow-float: 0 40px 80px rgba(14, 165, 233, 0.16);
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: auto; }
+
+body {
+  margin: 0;
+  background-color: var(--app-bg);
+  color: var(--ink);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-feature-settings: 'cv11', 'ss01';
+  font-optical-sizing: auto;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+/* Single-typeface system: every legacy family class resolves to Inter. */
+.font-serif {
+  font-family: 'Inter', sans-serif;
+  font-weight: 800;
+  letter-spacing: -0.035em;
+}
+.font-sans { font-family: 'Inter', sans-serif; }
+.font-mono {
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.005em;
+}
+
+/* ---------- surfaces ---------- */
+.card-flat {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 1rem;
+  box-shadow: var(--shadow-ethereal);
+  transition: box-shadow 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+              border-color 0.35s ease, transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.card-flat:hover {
+  border-color: rgba(14, 165, 233, 0.35);
+  box-shadow: var(--shadow-lift);
+}
+
+.lift:hover { transform: translateY(-3px); }
+
+.hairline { border-color: var(--line); }
+
+.glass-nav {
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(20px) saturate(1.6);
+  -webkit-backdrop-filter: blur(20px) saturate(1.6);
+  border-bottom: 1px solid var(--line);
+}
+
+.glass-panel {
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(28px) saturate(1.8);
+  -webkit-backdrop-filter: blur(28px) saturate(1.8);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  box-shadow: var(--shadow-float);
+}
+
+/* Ambient light mesh — the app's ever-present atmosphere */
+.grain-bg {
+  background-color: var(--app-bg);
+  background-image:
+    radial-gradient(900px circle at 8% -5%, rgba(14, 165, 233, 0.10), transparent 60%),
+    radial-gradient(700px circle at 100% 0%, rgba(125, 211, 252, 0.14), transparent 55%),
+    radial-gradient(1000px circle at 50% 120%, rgba(224, 242, 254, 0.7), transparent 60%);
+}
+
+.mesh-hero {
+  background:
+    radial-gradient(1200px circle at 15% 10%, rgba(14, 165, 233, 0.16), transparent 55%),
+    radial-gradient(900px circle at 85% 5%, rgba(186, 230, 253, 0.55), transparent 55%),
+    radial-gradient(1100px circle at 60% 100%, rgba(240, 249, 255, 0.9), transparent 60%),
+    #FFFFFF;
+}
+
+.noise-overlay::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.03;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.grid-lines {
+  background-image:
+    linear-gradient(rgba(14, 165, 233, 0.055) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(14, 165, 233, 0.055) 1px, transparent 1px);
+  background-size: 64px 64px;
+}
+
+/* ---------- buttons ---------- */
+.btn-white {
+  background: var(--ink);
+  color: #ffffff;
+  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.16);
+  transition: background-color 0.25s ease, transform 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 0.25s ease;
+}
+.btn-white:hover {
+  background: #1E293B;
+  transform: translateY(-2px);
+  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.22);
+}
+
+.btn-accent {
+  background: linear-gradient(135deg, #0EA5E9, #0284C7);
+  color: #fff;
+  box-shadow: 0 8px 24px rgba(14, 165, 233, 0.32);
+  transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.25s ease, filter 0.25s ease;
+}
+.btn-accent:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.06);
+  box-shadow: 0 16px 34px rgba(14, 165, 233, 0.42);
+}
+
+/* ---------- live streaming ticks ---------- */
+@keyframes tick-up {
+  0% { background-color: rgba(16, 185, 129, 0.22); }
+  100% { background-color: transparent; }
+}
+@keyframes tick-down {
+  0% { background-color: rgba(225, 29, 72, 0.18); }
+  100% { background-color: transparent; }
+}
+.tick-up { animation: tick-up 0.7s ease-out; border-radius: 0.375rem; }
+.tick-down { animation: tick-down 0.7s ease-out; border-radius: 0.375rem; }
+
+@keyframes live-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.5); }
+  50% { opacity: 0.7; transform: scale(0.88); box-shadow: 0 0 0 5px rgba(16, 185, 129, 0); }
+}
+.live-dot { animation: live-pulse 1.8s ease-in-out infinite; }
+
+@keyframes shimmer {
+  100% { transform: translateX(100%); }
+}
+.shimmer { position: relative; overflow: hidden; }
+.shimmer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(14, 165, 233, 0.10), transparent);
+  animation: shimmer 1.6s infinite;
+}
+
+/* ---------- scrollbars, selection, focus ---------- */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: #F1F5F9; }
+::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 6px; border: 2px solid #F1F5F9; }
+::-webkit-scrollbar-thumb:hover { background: #94A3B8; }
+
+::selection { background: var(--sky-light); color: var(--sky-deep); }
+
+input:focus-visible, button:focus-visible, select:focus-visible {
+  outline: 2px solid rgba(14, 165, 233, 0.45);
+  outline-offset: 2px;
+}
+
+/* Range sliders on light */
+input[type="range"] {
+  background: linear-gradient(90deg, #E0F2FE, #E2E8F0);
+}
+
+.mask-line { overflow: hidden; display: block; }
+
+kbd {
+  font-family: 'Inter', sans-serif;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}

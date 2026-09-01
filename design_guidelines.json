@@ -1,0 +1,131 @@
+{
+  "app_name": "LiquidityIQ",
+  "theme_type": "light",
+  "design_philosophy": "Ethereal Fintech. A high-motion, hyper-clean light theme built exclusively on the Inter typeface, pristine whites, and kinetic light blues. The UI must feel like a precision instrument—fast, transparent, and breathing with real-time data. We weaponize negative space and radical typographic weights to prevent the 'Inter + Light Theme' from feeling like generic corporate SaaS.",
+  "colors": {
+    "background": {
+      "app": "#F8FAFC",
+      "surface": "#FFFFFF",
+      "surface_glass": "rgba(255, 255, 255, 0.75)"
+    },
+    "text": {
+      "primary": "#0F172A",
+      "secondary": "#64748B",
+      "tertiary": "#94A3B8",
+      "accent": "#0284C7"
+    },
+    "brand_blues": {
+      "lightest": "#F0F9FF",
+      "light": "#E0F2FE",
+      "base": "#0EA5E9",
+      "dark": "#0369A1"
+    },
+    "semantic": {
+      "risk_low": "#10B981",
+      "risk_medium": "#F59E0B",
+      "risk_high": "#EF4444",
+      "info": "#0EA5E9",
+      "tick_up": "#059669",
+      "tick_down": "#E11D48"
+    }
+  },
+  "typography": {
+    "font_family": "'Inter', sans-serif",
+    "strategy": "Since we are constrained to Inter, we must use radical weight contrast to create tension. Never use 'Medium' or 'SemiBold' for large headers. Jump from Light (300) to Black (900).",
+    "scales": {
+      "h1": "text-5xl sm:text-6xl font-black tracking-tighter text-slate-900",
+      "h2": "text-3xl sm:text-4xl font-light tracking-tight text-slate-800",
+      "h3": "text-xl sm:text-2xl font-bold tracking-tight text-slate-900",
+      "body": "text-base font-normal leading-relaxed text-slate-600",
+      "financial_metric_large": "text-4xl font-light tracking-tighter tabular-nums text-slate-900",
+      "financial_metric_standard": "text-lg font-medium tracking-tight tabular-nums text-slate-700",
+      "micro_label": "text-xs font-bold uppercase tracking-[0.15em] text-slate-400"
+    }
+  },
+  "shadows_and_borders": {
+    "ethereal_shadow": "shadow-[0_8px_30px_rgba(14,165,233,0.06)]",
+    "floating_shadow": "shadow-[0_20px_40px_rgba(14,165,233,0.12)]",
+    "border_crisp": "border border-slate-200/60",
+    "border_accent": "border border-sky-200",
+    "radius": "rounded-2xl"
+  },
+  "motion": {
+    "philosophy": "High motion, zero friction. Every interaction must have a fluid, hardware-accelerated response. The app should feel alive, especially with live streaming data.",
+    "page_transition": {
+      "initial": { "opacity": 0, "filter": "blur(4px)", "y": 10 },
+      "animate": { "opacity": 1, "filter": "blur(0px)", "y": 0 },
+      "exit": { "opacity": 0, "filter": "blur(4px)", "y": -10 },
+      "transition": { "duration": 0.4, "ease": [0.22, 1, 0.36, 1] }
+    },
+    "stagger_children": {
+      "container": {
+        "hidden": { "opacity": 0 },
+        "show": { "opacity": 1, "transition": { "staggerChildren": 0.08 } }
+      },
+      "item": {
+        "hidden": { "opacity": 0, "y": 15 },
+        "show": { "opacity": 1, "y": 0, "transition": { "ease": [0.22, 1, 0.36, 1] } }
+      }
+    },
+    "live_tick_flash": {
+      "strategy": "Wrap the streaming number in a Framer Motion span. When the 'value' prop changes, trigger this animation.",
+      "animate": {
+        "backgroundColor": ["rgba(14,165,233,0.2)", "rgba(255,255,255,0)"],
+        "scale": [1.05, 1],
+        "color": ["#0284C7", "#0F172A"]
+      },
+      "transition": { "duration": 0.5, "ease": "easeOut" }
+    },
+    "hover_lift": "hover:-translate-y-1 hover:shadow-[0_12px_30px_rgba(14,165,233,0.1)] transition-all duration-300"
+  },
+  "components": {
+    "command_palette_cmdk": {
+      "overlay": "fixed inset-0 z-50 bg-slate-900/20 backdrop-blur-md data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+      "content": "fixed left-[50%] top-[50%] z-50 w-full max-w-2xl translate-x-[-50%] translate-y-[-50%] rounded-2xl border border-white/50 bg-white/80 backdrop-blur-2xl shadow-[0_40px_80px_rgba(14,165,233,0.15)] overflow-hidden",
+      "input": "flex h-14 w-full rounded-md bg-transparent px-4 py-3 text-lg outline-none placeholder:text-slate-400 text-slate-900 border-b border-slate-100",
+      "item": "relative flex cursor-default select-none items-center rounded-xl px-4 py-3 text-sm outline-none aria-selected:bg-sky-50 aria-selected:text-sky-900 data-[disabled]:pointer-events-none data-[disabled]:opacity-50 transition-colors"
+    },
+    "glass_navbar": {
+      "wrapper": "sticky top-0 z-40 w-full border-b border-slate-200/50 bg-white/70 backdrop-blur-xl backdrop-saturate-150 supports-[backdrop-filter]:bg-white/60"
+    },
+    "metric_card": {
+      "wrapper": "bg-white rounded-2xl border border-slate-100 p-6 shadow-[0_4px_20px_rgba(14,165,233,0.03)] hover:shadow-[0_8px_30px_rgba(14,165,233,0.08)] transition-all duration-300 relative overflow-hidden"
+    },
+    "live_price_ticker": {
+      "wrapper": "flex items-center gap-2 px-3 py-1.5 rounded-full bg-sky-50 border border-sky-100",
+      "value": "font-mono text-sm font-semibold text-slate-900 tabular-nums tracking-tight",
+      "change_positive": "text-emerald-600 bg-emerald-50 px-1.5 rounded-sm",
+      "change_negative": "text-rose-600 bg-rose-50 px-1.5 rounded-sm"
+    }
+  },
+  "chart_styling": {
+    "file_target": "/app/frontend/src/lib/charts.js",
+    "variables": {
+      "gridColor": "rgba(14, 165, 233, 0.06)",
+      "textColor": "#64748B",
+      "ACCENT": "#0EA5E9",
+      "ACCENT_LIGHT": "rgba(14, 165, 233, 0.15)",
+      "EMERALD": "#10B981",
+      "AMBER": "#F59E0B",
+      "RED": "#EF4444"
+    },
+    "tooltip": {
+      "backgroundColor": "rgba(255, 255, 255, 0.95)",
+      "titleColor": "#0F172A",
+      "bodyColor": "#475569",
+      "borderColor": "rgba(226, 232, 240, 1)",
+      "borderWidth": 1
+    }
+  },
+  "universal_guidelines_for_main_agent": [
+    "You MUST implement this light theme globally. There is no dark mode toggle.",
+    "You MUST use Framer Motion extensively. The user specifically asked for 'high with motions'. Wrap pages in AnimatePresence and map lists to staggered children animations.",
+    "Implement the ⌘K command palette using 'cmdk' or shadcn's Command component. It must be accessible from anywhere and allow searching entities and jumping to forecasts.",
+    "For the live price streaming (WebSocket simulation or actual), you MUST implement the `live_tick_flash` motion.span to visually indicate a price update.",
+    "Do not use generic gray backgrounds for cards. Use pure white (#FFFFFF) against a slate-50 (#F8FAFC) app background. The contrast must come from delicate shadows and crisp borders.",
+    "NEVER use generic placeholder text. If adding mock data, make it realistic enterprise finance data.",
+    "Ensure all interactive elements have `data-testid` attributes in kebab-case representing their role (e.g., `data-testid=\"command-palette-trigger\"`).",
+    "For the AI Analyst page, utilize streaming typewriter text effects to simulate the Sonnet 4.6 generation.",
+    "Ensure the Command Palette has a glassmorphism backdrop (`backdrop-blur-md bg-slate-900/20`) to create depth against the light UI."
+  ]
+}
