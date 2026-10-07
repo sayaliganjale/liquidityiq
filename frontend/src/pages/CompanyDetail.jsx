@@ -15,8 +15,10 @@ import { AIBrief, AIChat } from "@/components/AIAnalyst";
 import usePriceStream from "@/hooks/usePriceStream";
 import { LiveValue, LiveDot, ChangePill } from "@/components/LivePrice";
 import { downloadLiquidityReport } from "@/lib/pdf";
+import Breadcrumbs from "@/components/Breadcrumbs";
+import ErrorBoundary from "@/components/ErrorBoundary";
 import {
-  ArrowLeft, Brain, Pulse, Bank, ArrowUp, ArrowDown, FilePdf, SlidersHorizontal, Scales,
+  Brain, Pulse, Bank, ArrowUp, ArrowDown, FilePdf, SlidersHorizontal, Scales,
   Receipt, ChartLineUp, Sparkle,
 } from "@phosphor-icons/react";
 
@@ -115,9 +117,11 @@ export default function CompanyDetail() {
 
   return (
     <div className="px-5 sm:px-8 py-8 max-w-[1500px]">
-      <Link to="/app" className="inline-flex items-center gap-2 font-mono text-xs text-slate-500 hover:text-slate-900 transition-colors mb-6" data-testid="back-to-overview">
-        <ArrowLeft size={14} /> Overview
-      </Link>
+      <Breadcrumbs items={[
+        { label: "Overview", to: "/app" },
+        { label: "Entities", to: "/app/entities" },
+        { label: c.name },
+      ]} />
 
       <div className="flex flex-wrap items-start justify-between gap-4 mb-8">
         <div className="flex items-center gap-4">
@@ -165,6 +169,7 @@ export default function CompanyDetail() {
 
       <motion.div key={tab} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }}>
         {tab === "forecast" && (
+          <ErrorBoundary label="90-Day Forecast">
           <div className="space-y-6">
             <div className="card-flat rounded-lg p-6" data-testid="forecast-chart-card">
               <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
@@ -255,15 +260,23 @@ export default function CompanyDetail() {
               </div>
             </div>
           </div>
+          </ErrorBoundary>
         )}
 
         {tab === "scenario" && (
-          <ScenarioSimulator cid={cid} currency={cur} baseCash={c.total_cash} />
+          <ErrorBoundary label="Scenario Lab">
+            <ScenarioSimulator cid={cid} currency={cur} baseCash={c.total_cash} />
+          </ErrorBoundary>
         )}
 
-        {tab === "capital" && <WorkingCapital analytics={analytics} currency={cur} />}
+        {tab === "capital" && (
+          <ErrorBoundary label="Working Capital">
+            <WorkingCapital analytics={analytics} currency={cur} />
+          </ErrorBoundary>
+        )}
 
         {tab === "analyst" && (
+          <ErrorBoundary label="AI Analyst">
           <div className="space-y-4">
             <AIBrief cid={cid} companyName={c.name} onBrief={setBrief} />
             <AIChat
@@ -277,9 +290,14 @@ export default function CompanyDetail() {
               ]}
             />
           </div>
+          </ErrorBoundary>
         )}
 
-        {tab === "ledger" && <LedgerTable cid={cid} slug={c.slug} canWrite={canWrite} />}
+        {tab === "ledger" && (
+          <ErrorBoundary label="Ledger">
+            <LedgerTable cid={cid} slug={c.slug} canWrite={canWrite} />
+          </ErrorBoundary>
+        )}
       </motion.div>
     </div>
   );

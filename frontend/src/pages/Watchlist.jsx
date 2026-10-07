@@ -8,6 +8,7 @@ import api, { fmtNum, formatApiError } from "@/lib/api";
 import usePriceStream from "@/hooks/usePriceStream";
 import { LiveValue, LiveDot, ChangePill } from "@/components/LivePrice";
 import { Star, MagnifyingGlass, Trash, Plus, Pulse } from "@phosphor-icons/react";
+import { WatchlistEmpty } from "@/components/EmptyStates";
 
 function Sparkline({ points, up }) {
   if (!points || points.length < 2) return <div className="h-10" />;
@@ -120,11 +121,7 @@ export default function Watchlist() {
       {items === null ? (
         <p className="font-mono text-xs uppercase tracking-[0.3em] text-slate-400 animate-pulse">Loading watchlist…</p>
       ) : items.length === 0 ? (
-        <div className="border border-dashed border-slate-200 rounded-xl px-8 py-16 text-center" data-testid="watchlist-empty">
-          <Star size={28} className="mx-auto text-slate-300" />
-          <p className="mt-3 text-sm text-slate-500">Your watchlist is empty.</p>
-          <p className="mt-1 font-mono text-[11px] text-slate-400">Search above to pin your first ticker.</p>
-        </div>
+        <WatchlistEmpty />
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
           {items.map((it, i) => {

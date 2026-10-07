@@ -1,20 +1,34 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Doughnut } from "react-chartjs-2";
 import "@/lib/charts";
 import api, { fmtMoney } from "@/lib/api";
 import RiskBadge from "@/components/RiskBadge";
+import AnimatedCounter from "@/components/AnimatedCounter";
+import { DashboardSkeleton } from "@/components/Skeleton";
 import usePriceStream from "@/hooks/usePriceStream";
 import { LiveValue, LiveDot } from "@/components/LivePrice";
-import { ArrowUpRight, Buildings, Wallet, TrendUp, TrendDown, Scales } from "@phosphor-icons/react";
+import { ArrowUpRight, Buildings, Wallet, TrendUp, TrendDown, Scales, Funnel } from "@phosphor-icons/react";
 
 const fade = {
   hidden: { opacity: 0, y: 18 },
   show: (i) => ({ opacity: 1, y: 0, transition: { duration: 0.55, delay: i * 0.07, ease: [0.22, 1, 0.36, 1] } }),
 };
 
-function Kpi({ i, label, value, sub, icon: Icon, accent }) {
+const FILTERS = [
+  { key: "all",      label: "All" },
+  { key: "high",     label: "High Risk" },
+  { key: "medium",   label: "Medium Risk" },
+  { key: "low",      label: "Low Risk" },
+  { key: "public",   label: "Public" },
+  { key: "private",  label: "Private" },
+  { key: "lowrun",   label: "Low Runway" },
+];
+
+function Kpi({ i, label, value, rawValue, sub, icon: Icon, accent, currency }) {
+  const fmt = useCallback((v) => fmtMoney(v, currency || "USD"), [currency]);
+
   return (
     <motion.div variants={fade} initial="hidden" animate="show" custom={i}
       className="card-flat lift p-5 relative overflow-hidden" data-testid={`kpi-${label.toLowerCase().replace(/\s/g,'-')}`}>
@@ -23,7 +37,11 @@ function Kpi({ i, label, value, sub, icon: Icon, accent }) {
         <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">{label}</span>
         <Icon size={17} className={accent} />
       </div>
-      <p className="relative mt-4 font-mono text-[30px] font-light tracking-tighter text-slate-900">{value}</p>
+      <p className="relative mt-4 font-mono text-[30px] font-light tracking-tighter text-slate-900">
+        {rawValue != null ? (
+          <AnimatedCounter value={rawValue} format={fmt} duration={1.4} />
+        ) : value}
+      </p>
       {sub && <p className="relative mt-1 text-xs text-slate-400">{sub}</p>}
     </motion.div>
   );
@@ -33,6 +51,7 @@ export default function Dashboard() {
   const [data, setData] = useState(null);
   const [watchlist, setWatchlist] = useState([]);
   const [err, setErr] = useState("");
+  const [filter, setFilter] = useState("all");
 
   useEffect(() => {
     api.get("/dashboard/summary").then((r) => setData(r.data)).catch((e) => setErr("Failed to load dashboard"));
@@ -41,8 +60,22 @@ export default function Dashboard() {
 
   const { quotes: streamed, live } = usePriceStream(watchlist.map((w) => w.symbol).filter(Boolean));
 
+  const filteredEntities = useMemo(() => {
+    if (!data) return [];
+    const entities = data.entities;
+    switch (filter) {
+      case "high":    return entities.filter((e) => e.risk === "HIGH_RISK");
+      case "medium":  return entities.filter((e) => e.risk === "MEDIUM_RISK");
+      case "low":     return entities.filter((e) => e.risk === "LOW_RISK");
+      case "public":  return entities.filter((e) => e.kind === "public");
+      case "private": return entities.filter((e) => e.kind === "private");
+      case "lowrun":  return entities.filter((e) => e.runway_days < 30);
+      default:        return entities;
+    }
+  }, [data, filter]);
+
   if (err) return <div className="p-10 text-rose-600">{err}</div>;
-  if (!data) return <div className="p-10 text-xs font-bold uppercase tracking-[0.3em] text-slate-400 animate-pulse">Computing liquidity…</div>;
+  if (!data) return <DashboardSkeleton />;
 
   const t = data.totals;
   const rd = data.risk_distribution;
@@ -66,10 +99,10 @@ export default function Dashboard() {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
-        <Kpi i={0} label="Total Cash" value={fmtMoney(t.cash_usd)} sub="Across all bank accounts" icon={Wallet} accent="text-sky-600" />
-        <Kpi i={1} label="Receivables" value={fmtMoney(t.ar_usd)} sub="Accounts Receivable" icon={TrendUp} accent="text-emerald-600" />
-        <Kpi i={2} label="Payables" value={fmtMoney(t.ap_usd)} sub="Accounts Payable" icon={TrendDown} accent="text-amber-600" />
-        <Kpi i={3} label="Net Position" value={fmtMoney(t.net_position_usd)} sub="Cash + AR − AP" icon={Scales} accent="text-slate-900" />
+        <Kpi i={0} label="Total Cash" rawValue={t.cash_usd} value={fmtMoney(t.cash_usd)} sub="Across all bank accounts" icon={Wallet} accent="text-sky-600" />
+        <Kpi i={1} label="Receivables" rawValue={t.ar_usd} value={fmtMoney(t.ar_usd)} sub="Accounts Receivable" icon={TrendUp} accent="text-emerald-600" />
+        <Kpi i={2} label="Payables" rawValue={t.ap_usd} value={fmtMoney(t.ap_usd)} sub="Accounts Payable" icon={TrendDown} accent="text-amber-600" />
+        <Kpi i={3} label="Net Position" rawValue={t.net_position_usd} value={fmtMoney(t.net_position_usd)} sub="Cash + AR − AP" icon={Scales} accent="text-slate-900" />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
@@ -128,11 +161,38 @@ export default function Dashboard() {
         </div>
       </div>
 
+      {/* Quick-filter pills */}
+      <div className="flex flex-wrap items-center gap-2 mb-4" data-testid="entity-filters">
+        <Funnel size={14} className="text-slate-400" />
+        {FILTERS.map((f) => (
+          <button
+            key={f.key}
+            onClick={() => setFilter(f.key)}
+            data-testid={`filter-${f.key}`}
+            className={`px-3 py-1.5 rounded-full font-mono text-[10px] uppercase tracking-wider border transition-all duration-200 ${
+              filter === f.key
+                ? "border-sky-300 bg-sky-50 text-sky-700 shadow-[0_2px_8px_rgba(14,165,233,0.12)]"
+                : "border-slate-200 text-slate-500 hover:text-slate-900 hover:border-sky-200"
+            }`}
+          >
+            {f.label}
+            {filter === f.key && f.key !== "all" && (
+              <span className="ml-1.5 font-semibold">{filteredEntities.length}</span>
+            )}
+          </button>
+        ))}
+      </div>
+
       {/* Entities table */}
       <div className="card-flat rounded-lg overflow-hidden" data-testid="entities-table">
         <div className="px-6 py-4 border-b hairline flex items-center gap-2">
           <Buildings size={16} className="text-sky-600" />
           <h3 className="font-mono text-[11px] uppercase tracking-[0.2em] text-slate-500">Multi-Entity Portfolio</h3>
+          {filter !== "all" && (
+            <span className="font-mono text-[10px] text-sky-600 ml-auto">
+              {filteredEntities.length} of {data.entities.length} entities
+            </span>
+          )}
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
@@ -148,7 +208,14 @@ export default function Dashboard() {
               </tr>
             </thead>
             <tbody>
-              {data.entities.map((e) => (
+              {filteredEntities.length === 0 && (
+                <tr>
+                  <td colSpan={7} className="px-6 py-12 text-center text-sm text-slate-400">
+                    No entities match the "{FILTERS.find((f) => f.key === filter)?.label}" filter.
+                  </td>
+                </tr>
+              )}
+              {filteredEntities.map((e) => (
                 <tr key={e.id} className="border-b hairline last:border-0 hover:bg-sky-50/50 transition-colors" data-testid={`entity-row-${e.id}`}>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
@@ -162,7 +229,11 @@ export default function Dashboard() {
                   <td className="px-6 py-4 hidden sm:table-cell font-mono text-xs text-slate-500 capitalize">{e.kind}</td>
                   <td className="px-6 py-4 hidden md:table-cell text-xs text-slate-500">{e.sector}</td>
                   <td className="px-6 py-4 text-right font-mono">{fmtMoney(e.cash_usd)}</td>
-                  <td className="px-6 py-4 text-right hidden sm:table-cell font-mono text-xs">{e.runway_days >= 900 ? "90d+" : `${e.runway_days}d`}</td>
+                  <td className="px-6 py-4 text-right hidden sm:table-cell font-mono text-xs">
+                    <span className={e.runway_days < 30 ? "text-rose-600 font-semibold" : ""}>
+                      {e.runway_days >= 900 ? "90d+" : `${e.runway_days}d`}
+                    </span>
+                  </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-2">
                       <RiskBadge risk={e.risk} size="sm" />

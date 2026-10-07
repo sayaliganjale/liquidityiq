@@ -7,6 +7,7 @@ import { useAuth } from "@/context/AuthContext";
 import {
   BellRinging, Plus, Trash, ShieldCheck, X, ToggleLeft, ToggleRight, ArrowRight,
 } from "@phosphor-icons/react";
+import { AlertsEmpty } from "@/components/EmptyStates";
 
 const SEVERITIES = ["critical", "warning", "info"];
 const SEV_STYLE = {
@@ -130,13 +131,7 @@ export default function Alerts() {
               </motion.div>
             ))}
             {data && data.alerts.length === 0 && (
-              <div className="px-6 py-16 text-center" data-testid="alerts-empty">
-                <ShieldCheck size={28} className="mx-auto text-emerald-600/70" />
-                <p className="mt-3 text-sm text-slate-500">No thresholds breached.</p>
-                <p className="mt-1 font-mono text-[11px] text-slate-400">
-                  All {data.entities_scanned} entities are inside their liquidity limits.
-                </p>
-              </div>
+              <AlertsEmpty entitiesScanned={data.entities_scanned} />
             )}
             {!data && <p className="px-6 py-10 font-mono text-xs text-slate-400 animate-pulse">Evaluating rules…</p>}
           </div>

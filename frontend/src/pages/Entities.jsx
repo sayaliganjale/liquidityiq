@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import api, { fmtMoney, formatApiError } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
+import { EntityCardSkeleton } from "@/components/Skeleton";
 import {
   Buildings, Plus, MagnifyingGlass, Trash, PencilSimple, X, Globe, Lock, ArrowRight,
 } from "@phosphor-icons/react";
@@ -120,7 +121,7 @@ export default function Entities() {
           </motion.div>
         ))}
         {items === null && (
-          <p className="font-mono text-xs uppercase tracking-[0.3em] text-slate-400 animate-pulse">Loading entities…</p>
+          <>{[1,2,3,4,5,6].map(i => <EntityCardSkeleton key={i} />)}</>
         )}
       </div>
 

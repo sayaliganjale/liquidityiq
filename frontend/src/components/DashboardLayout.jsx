@@ -4,9 +4,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/context/AuthContext";
 import api from "@/lib/api";
 import CommandPalette from "@/components/CommandPalette";
+import KeyboardShortcuts from "@/components/KeyboardShortcuts";
+import ErrorBoundary from "@/components/ErrorBoundary";
 import {
   TrendUp, ChartLineUp, MagnifyingGlass, SignOut, Buildings, BellRinging, Star, Sparkle,
-  UsersThree, Command as CommandIcon,
+  UsersThree, Command as CommandIcon, DotsThreeOutline, Globe, X,
 } from "@phosphor-icons/react";
 
 const NAV = [
@@ -21,6 +23,18 @@ const MARKET_NAV = [
   { to: "/app/watchlist", label: "My Watchlist", icon: Star, testid: "nav-watchlist" },
 ];
 
+const MOBILE_PRIMARY = [
+  { to: "/app", label: "Overview", icon: ChartLineUp, end: true, testid: "m-nav-overview" },
+  { to: "/app/entities", label: "Entities", icon: Buildings, testid: "m-nav-entities" },
+  { to: "/app/alerts", label: "Alerts", icon: BellRinging, testid: "m-nav-alerts", badge: true },
+  { to: "/app/analyst", label: "AI", icon: Sparkle, testid: "m-nav-analyst" },
+];
+
+const MOBILE_MORE = [
+  { to: "/app/market", label: "Market Search", icon: Globe, testid: "m-nav-market" },
+  { to: "/app/watchlist", label: "My Watchlist", icon: Star, testid: "m-nav-watchlist" },
+];
+
 const openPalette = () => window.dispatchEvent(new Event("liquidityiq:open-palette"));
 
 export default function DashboardLayout() {
@@ -28,11 +42,13 @@ export default function DashboardLayout() {
   const navigate = useNavigate();
   const location = useLocation();
   const [alerts, setAlerts] = useState(null);
+  const [moreOpen, setMoreOpen] = useState(false);
   const mainRef = useRef(null);
 
   // Scroll main content to top on route change
   useEffect(() => {
     if (mainRef.current) mainRef.current.scrollTo({ top: 0, behavior: "instant" });
+    setMoreOpen(false);
   }, [location.pathname]);
 
   useEffect(() => {
@@ -60,6 +76,7 @@ export default function DashboardLayout() {
   return (
     <div className="min-h-screen grain-bg text-slate-900 flex">
       <CommandPalette />
+      <KeyboardShortcuts />
 
       <aside className="hidden lg:flex w-64 flex-col border-r hairline fixed h-screen bg-white/80 backdrop-blur-xl z-20">
         <Link to="/" className="flex items-center gap-2.5 px-6 py-6 border-b hairline group" data-testid="sidebar-logo">
@@ -142,6 +159,113 @@ export default function DashboardLayout() {
         </div>
       </aside>
 
+      {/* ====== MOBILE: Bottom Tab Bar ====== */}
+      <div className="lg:hidden fixed bottom-0 inset-x-0 z-30 bg-white/85 backdrop-blur-xl border-t border-slate-200/60 safe-bottom">
+        <div className="flex items-center justify-around px-2 py-1">
+          {MOBILE_PRIMARY.map((n) => (
+            <NavLink
+              key={n.to}
+              to={n.to}
+              end={n.end}
+              data-testid={n.testid}
+              className={({ isActive }) =>
+                `relative flex flex-col items-center gap-0.5 px-3 py-2 rounded-xl text-[10px] font-semibold uppercase tracking-wider transition-colors ${
+                  isActive ? "text-sky-600" : "text-slate-400"
+                }`
+              }
+            >
+              <n.icon size={20} weight="regular" />
+              <span>{n.label}</span>
+              {n.badge && badge > 0 && (
+                <span className="absolute -top-0.5 right-1 h-2 w-2 rounded-full bg-rose-500" />
+              )}
+            </NavLink>
+          ))}
+          <button
+            onClick={() => setMoreOpen((v) => !v)}
+            data-testid="m-more-btn"
+            className={`flex flex-col items-center gap-0.5 px-3 py-2 rounded-xl text-[10px] font-semibold uppercase tracking-wider transition-colors ${
+              moreOpen ? "text-sky-600" : "text-slate-400"
+            }`}
+          >
+            <DotsThreeOutline size={20} weight={moreOpen ? "fill" : "regular"} />
+            <span>More</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Mobile "More" drawer */}
+      <AnimatePresence>
+        {moreOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="lg:hidden fixed inset-0 z-[29] bg-slate-900/20 backdrop-blur-sm"
+            onClick={() => setMoreOpen(false)}
+          >
+            <motion.div
+              initial={{ y: 40, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 40, opacity: 0 }}
+              transition={{ ease: [0.22, 1, 0.36, 1] }}
+              onClick={(e) => e.stopPropagation()}
+              className="absolute bottom-20 left-3 right-3 bg-white border border-slate-200 rounded-2xl p-4 shadow-[0_-10px_40px_rgba(0,0,0,0.12)]"
+            >
+              <div className="flex items-center justify-between mb-3">
+                <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-400">More</p>
+                <button onClick={() => setMoreOpen(false)} className="text-slate-400">
+                  <X size={14} />
+                </button>
+              </div>
+              <div className="space-y-1">
+                {MOBILE_MORE.map((n) => (
+                  <NavLink
+                    key={n.to}
+                    to={n.to}
+                    data-testid={n.testid}
+                    onClick={() => setMoreOpen(false)}
+                    className={({ isActive }) =>
+                      `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-colors ${
+                        isActive ? "bg-sky-50 text-sky-700" : "text-slate-600 hover:bg-slate-50"
+                      }`
+                    }
+                  >
+                    <n.icon size={17} />
+                    {n.label}
+                  </NavLink>
+                ))}
+                <button
+                  onClick={openPalette}
+                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-slate-600 hover:bg-slate-50 transition-colors"
+                >
+                  <MagnifyingGlass size={17} />
+                  Search (⌘K)
+                </button>
+                {user?.role === "admin" && (
+                  <NavLink
+                    to="/app/team"
+                    onClick={() => setMoreOpen(false)}
+                    className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-slate-600 hover:bg-slate-50 transition-colors"
+                  >
+                    <UsersThree size={17} />
+                    Team & Access
+                  </NavLink>
+                )}
+                <button
+                  onClick={doLogout}
+                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-rose-500 hover:bg-rose-50 transition-colors"
+                >
+                  <SignOut size={17} />
+                  Sign out
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Mobile top bar (simplified) */}
       <div className="lg:hidden fixed top-0 inset-x-0 z-30 glass-nav flex items-center justify-between px-4 py-3">
         <Link to="/app" className="flex items-center gap-2">
           <span className="h-7 w-7 rounded-lg bg-gradient-to-br from-sky-400 to-sky-600 flex items-center justify-center">
@@ -149,20 +273,12 @@ export default function DashboardLayout() {
           </span>
           <span className="font-serif text-base">LiquidityIQ</span>
         </Link>
-        <div className="flex items-center gap-3.5 text-slate-500">
-          <button onClick={openPalette} data-testid="m-palette-trigger"><MagnifyingGlass size={19} /></button>
-          <NavLink to="/app" end data-testid="m-nav-overview"><ChartLineUp size={19} /></NavLink>
-          <NavLink to="/app/entities" data-testid="m-nav-entities"><Buildings size={19} /></NavLink>
-          <NavLink to="/app/alerts" className="relative" data-testid="m-nav-alerts">
-            <BellRinging size={19} />
-            {badge > 0 && <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-rose-500" />}
-          </NavLink>
-          <NavLink to="/app/analyst" data-testid="m-nav-analyst"><Sparkle size={19} /></NavLink>
-          <button onClick={doLogout} data-testid="m-logout-btn"><SignOut size={19} /></button>
-        </div>
+        <button onClick={openPalette} data-testid="m-palette-trigger" className="text-slate-500">
+          <MagnifyingGlass size={19} />
+        </button>
       </div>
 
-      <main ref={mainRef} className="flex-1 lg:ml-64 pt-16 lg:pt-0 min-w-0">
+      <main ref={mainRef} className="flex-1 lg:ml-64 pt-16 lg:pt-0 pb-20 lg:pb-0 min-w-0">
         <AnimatePresence mode="wait">
           <motion.div
             key={location.pathname}
@@ -170,7 +286,9 @@ export default function DashboardLayout() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
           >
-            <Outlet />
+            <ErrorBoundary label="Page Content">
+              <Outlet />
+            </ErrorBoundary>
           </motion.div>
         </AnimatePresence>
       </main>
