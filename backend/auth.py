@@ -4,6 +4,7 @@ from datetime import datetime, timezone, timedelta
 
 import bcrypt
 import jwt
+import pymongo
 from bson import ObjectId
 from fastapi import HTTPException, Request
 
@@ -94,13 +95,16 @@ async def seed_admin(db):
     admin_password = os.environ.get("ADMIN_PASSWORD", "admin123")
     existing = await db.users.find_one({"email": admin_email})
     if existing is None:
-        await db.users.insert_one({
-            "email": admin_email,
-            "password_hash": hash_password(admin_password),
-            "name": "Treasury Admin",
-            "role": "admin",
-            "created_at": datetime.now(timezone.utc).isoformat(),
-        })
+        try:
+            await db.users.insert_one({
+                "email": admin_email,
+                "password_hash": hash_password(admin_password),
+                "name": "Treasury Admin",
+                "role": "admin",
+                "created_at": datetime.now(timezone.utc).isoformat(),
+            })
+        except pymongo.errors.DuplicateKeyError:
+            pass
     elif not verify_password(admin_password, existing["password_hash"]):
         await db.users.update_one({"email": admin_email},
                                   {"$set": {"password_hash": hash_password(admin_password)}})
