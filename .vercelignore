@@ -1,0 +1,14 @@
+# Backend & Python virtual environments
+backend/
+venv/
+.venv/
+__pycache__/
+
+# Testing and assignments
+tests/
+*.pdf
+
+# Git and OS metadata
+.git/
+.DS_Store
+.vscode/

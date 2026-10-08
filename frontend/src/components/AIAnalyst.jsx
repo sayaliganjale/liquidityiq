@@ -61,6 +61,7 @@ export function AIBrief({ cid, companyName, onBrief }) {
         onBrief?.(r.data.content);
       }
     }).catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cid]);
 
   const run = async () => {

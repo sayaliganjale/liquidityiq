@@ -807,10 +807,14 @@ async def ws_prices(websocket: WebSocket):
 
 app.include_router(api)
 
+frontend_env = os.environ.get("FRONTEND_URL", "http://localhost:3000")
+allowed_origins = [o.strip() for o in frontend_env.split(",") if o.strip()]
+
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
-    allow_origins=[os.environ.get("FRONTEND_URL", "http://localhost:3000")],
+    allow_origins=allowed_origins,
+    allow_origin_regex=r"https://.*\.vercel\.app",
     allow_methods=["*"],
     allow_headers=["*"],
     expose_headers=["X-Session-Id"],

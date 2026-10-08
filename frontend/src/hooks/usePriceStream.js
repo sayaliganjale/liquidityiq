@@ -1,7 +1,16 @@
 import { useEffect, useRef, useState } from "react";
 import { API } from "@/lib/api";
 
-const WS_URL = `${API.replace(/^http/, "ws")}/ws/prices`;
+const getWsUrl = () => {
+  if (API.startsWith("http://") || API.startsWith("https://")) {
+    return `${API.replace(/^http/, "ws")}/ws/prices`;
+  }
+  if (typeof window !== "undefined") {
+    const proto = window.location.protocol === "https:" ? "wss:" : "ws:";
+    return `${proto}//${window.location.host}${API}/ws/prices`;
+  }
+  return "ws://localhost:8000/api/ws/prices";
+};
 
 /**
  * Streams live quotes over a WebSocket, falling back to REST polling if the socket
@@ -50,7 +59,7 @@ export default function usePriceStream(symbols = []) {
       if (closed) return;
       let ws;
       try {
-        ws = new WebSocket(WS_URL);
+        ws = new WebSocket(getWsUrl());
       } catch {
         startPolling();
         return;

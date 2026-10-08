@@ -29,6 +29,7 @@ export default function LedgerTable({ cid, slug, canWrite }) {
     clearTimeout(timer.current);
     timer.current = setTimeout(load, 220);
     return () => clearTimeout(timer.current);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cid, search, direction, category, page]);
 
   useEffect(() => setPage(1), [search, direction, category]);
