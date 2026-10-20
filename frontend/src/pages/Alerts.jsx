@@ -18,7 +18,7 @@ const SEV_STYLE = {
 
 export default function Alerts() {
   const { user } = useAuth();
-  const canWrite = ["admin", "analyst"].includes(user?.role);
+  const canWrite = Boolean(user); // alert rules are personal to each user
   const [data, setData] = useState(null);
   const [rules, setRules] = useState(null);
   const [meta, setMeta] = useState({ metrics: {}, operators: {} });

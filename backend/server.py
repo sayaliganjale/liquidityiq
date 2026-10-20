@@ -44,7 +44,8 @@ app = FastAPI(title="LiquidityIQ API")
 api = APIRouter(prefix="/api")
 
 ROLES = ("admin", "analyst", "viewer")
-WRITE_ROLES = ("admin", "analyst")
+WRITE_ROLES = ("admin",)  # only admins can add / edit / delete companies and ledgers
+DEFAULT_SIGNUP_ROLE = "viewer"
 
 
 async def current_user(request: Request):
@@ -102,7 +103,7 @@ async def register(payload: RegisterInput, response: Response):
         "email": email,
         "password_hash": auth_mod.hash_password(payload.password),
         "name": payload.name or "User",
-        "role": "analyst",
+        "role": DEFAULT_SIGNUP_ROLE,
         "created_at": datetime.now(timezone.utc).isoformat(),
     }
     res = await db.users.insert_one(doc)
@@ -186,7 +187,7 @@ async def list_companies(user=Depends(current_user)):
 
 @api.post("/companies")
 async def create_company(payload: CompanyInput, user=Depends(current_user)):
-    require_write(user)
+    require_admin(user)
     doc = {
         "name": payload.name,
         "slug": _slugify(payload.name),
@@ -197,7 +198,7 @@ async def create_company(payload: CompanyInput, user=Depends(current_user)):
         "sector": payload.sector,
         "country": payload.country,
         "logo_bg": payload.logo_bg,
-        "owner_id": user["_id"],
+        "owner_id": None,  # admin-managed entities are shared with every user
         "created_at": datetime.now(timezone.utc).isoformat(),
     }
     res = await db.companies.insert_one(doc)
@@ -213,12 +214,12 @@ async def create_company(payload: CompanyInput, user=Depends(current_user)):
 
 @api.post("/companies/onboard")
 async def onboard_ticker(payload: OnboardTickerInput, user=Depends(current_user)):
-    require_write(user)
+    require_admin(user)
     ticker = payload.ticker.strip().upper()
     quote = market_mod.get_quote(ticker)
     if not quote.get("ok"):
         raise HTTPException(status_code=404, detail=f"Ticker '{ticker}' not found on any supported exchange")
-    if await db.companies.find_one({"ticker": ticker, **_visibility(user)}):
+    if await db.companies.find_one({"ticker": ticker}):
         raise HTTPException(status_code=400, detail=f"{ticker} is already in your portfolio")
     currency = quote.get("currency", "USD")
     price = quote.get("price") or 0
@@ -235,7 +236,7 @@ async def onboard_ticker(payload: OnboardTickerInput, user=Depends(current_user)
         "sector": "Listed Equity",
         "country": "India" if ticker.endswith((".NS", ".BO")) else "Global",
         "logo_bg": "#12233A",
-        "owner_id": user["_id"],
+        "owner_id": None,  # admin-managed entities are shared with every user
         "created_at": datetime.now(timezone.utc).isoformat(),
     }
     res = await db.companies.insert_one(doc)
@@ -251,7 +252,7 @@ async def onboard_ticker(payload: OnboardTickerInput, user=Depends(current_user)
 
 @api.patch("/companies/{cid}")
 async def update_company(cid: str, payload: CompanyUpdate, user=Depends(current_user)):
-    require_write(user)
+    require_admin(user)
     doc = await _get_visible_company(cid, user)
     if doc.get("owner_id") not in (user["_id"], None) and user.get("role") != "admin":
         raise HTTPException(status_code=403, detail="You do not own this entity")
@@ -269,7 +270,7 @@ async def update_company(cid: str, payload: CompanyUpdate, user=Depends(current_
 
 @api.delete("/companies/{cid}")
 async def delete_company(cid: str, user=Depends(current_user)):
-    require_write(user)
+    require_admin(user)
     doc = await _get_visible_company(cid, user)
     if not doc.get("owner_id") and user.get("role") != "admin":
         raise HTTPException(status_code=403, detail="Shared demo entities can only be deleted by an admin")
@@ -396,7 +397,7 @@ async def export_transactions(cid: str, user=Depends(current_user)):
 
 @api.post("/companies/{cid}/transactions/import")
 async def import_transactions(cid: str, file: UploadFile = File(...), user=Depends(current_user)):
-    require_write(user)
+    require_admin(user)
     d = await _get_visible_company(cid, user)
     raw = (await file.read()).decode("utf-8-sig", errors="replace")
     reader = csv.DictReader(io.StringIO(raw))
@@ -582,7 +583,7 @@ async def get_rules(user=Depends(current_user)):
 
 @api.post("/alerts/rules")
 async def create_rule(payload: AlertRuleInput, user=Depends(current_user)):
-    require_write(user)
+    # Alert rules are personal (scoped by user_id), so every signed-in user may manage their own.
     if payload.metric not in alerts_mod.METRICS:
         raise HTTPException(status_code=400, detail="Unknown metric")
     if payload.op not in alerts_mod.OPS:
@@ -596,7 +597,6 @@ async def create_rule(payload: AlertRuleInput, user=Depends(current_user)):
 
 @api.patch("/alerts/rules/{rid}")
 async def update_rule(rid: str, payload: AlertRuleUpdate, user=Depends(current_user)):
-    require_write(user)
     updates = payload.model_dump(exclude_none=True)
     res = await db.alert_rules.update_one({"_id": _oid(rid), "user_id": user["_id"]}, {"$set": updates})
     if not res.matched_count:
@@ -609,7 +609,6 @@ async def update_rule(rid: str, payload: AlertRuleUpdate, user=Depends(current_u
 
 @api.delete("/alerts/rules/{rid}")
 async def delete_rule(rid: str, user=Depends(current_user)):
-    require_write(user)
     res = await db.alert_rules.delete_one({"_id": _oid(rid), "user_id": user["_id"]})
     if not res.deleted_count:
         raise HTTPException(status_code=404, detail="Rule not found")
@@ -828,7 +827,14 @@ async def startup():
     await db.watchlist.create_index([("user_id", 1), ("symbol", 1)], unique=True)
     await db.ai_sessions.create_index([("user_id", 1), ("session_id", 1)])
     await auth_mod.seed_admin(db)
-    await db.users.update_many({"role": {"$nin": list(ROLES)}}, {"$set": {"role": "analyst"}})
+    # Entities previously added by any admin become shared so all users can see them.
+    admin_ids = [str(u["_id"]) async for u in db.users.find({"role": "admin"}, {"_id": 1})]
+    if admin_ids:
+        await db.companies.update_many({"owner_id": {"$in": admin_ids}}, {"$set": {"owner_id": None}})
+    # Only the ADMIN_EMAIL account is admin; everyone else becomes a read-only viewer.
+    owner_email = os.environ.get("ADMIN_EMAIL", "admin@liquidityiq.com").lower()
+    await db.users.update_one({"email": owner_email}, {"$set": {"role": "admin"}})
+    await db.users.update_many({"email": {"$ne": owner_email}}, {"$set": {"role": DEFAULT_SIGNUP_ROLE}})
     res = await seed_data(db)
     logger.info(f"Startup seed: {res}")
 

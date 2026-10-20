@@ -6,9 +6,9 @@ import { useAuth } from "@/context/AuthContext";
 import { UsersThree, ShieldWarning, Crown, ChartLine, Eye } from "@phosphor-icons/react";
 
 const ROLE_META = {
-  admin: { icon: Crown, desc: "Full control — manage every entity, shared demo data and team roles.", tone: "text-amber-700 border-amber-200 bg-amber-50" },
-  analyst: { icon: ChartLine, desc: "Create and manage their own entities, rules and forecasts.", tone: "text-sky-700 border-sky-200 bg-sky-50/70" },
-  viewer: { icon: Eye, desc: "Read-only access to dashboards, forecasts and reports.", tone: "text-slate-500 border-slate-200 bg-slate-50" },
+  admin: { icon: Crown, desc: "Full control — onboard ticker companies, manage every entity, ledgers and team roles.", tone: "text-amber-700 border-amber-200 bg-amber-50" },
+  analyst: { icon: ChartLine, desc: "Explore all companies, forecasts, scenarios and AI analysis; manage personal alerts and watchlist.", tone: "text-sky-700 border-sky-200 bg-sky-50/70" },
+  viewer: { icon: Eye, desc: "Default for new sign-ups — explore all companies, forecasts and AI analysis; manage personal alerts and watchlist.", tone: "text-slate-500 border-slate-200 bg-slate-50" },
 };
 
 export default function Team() {

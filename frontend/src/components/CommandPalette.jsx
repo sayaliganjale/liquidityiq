@@ -184,6 +184,7 @@ export default function CommandPalette() {
                   heading="Actions"
                   className="[&_[cmdk-group-heading]]:px-3 [&_[cmdk-group-heading]]:py-2 [&_[cmdk-group-heading]]:text-[10px] [&_[cmdk-group-heading]]:font-bold [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-[0.16em] [&_[cmdk-group-heading]]:text-slate-400"
                 >
+                  {user?.role === "admin" && (<>
                   <Command.Item value="onboard a new listed ticker company"
                     onSelect={() => go("/app/entities?new=ticker")}
                     data-testid="palette-action-onboard"
@@ -198,6 +199,7 @@ export default function CommandPalette() {
                     <Plus size={16} className="text-sky-500" />
                     <span className="flex-1 text-sm text-slate-800">Create a private entity</span>
                   </Command.Item>
+                  </>)}
                   <Command.Item value="create new alert threshold rule"
                     onSelect={() => go("/app/alerts?new=rule")}
                     data-testid="palette-action-rule"

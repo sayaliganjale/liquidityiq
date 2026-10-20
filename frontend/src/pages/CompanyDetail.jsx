@@ -43,7 +43,7 @@ export default function CompanyDetail() {
   const { cid } = useParams();
   const [params, setParams] = useSearchParams();
   const { user } = useAuth();
-  const canWrite = ["admin", "analyst"].includes(user?.role);
+  const canWrite = user?.role === "admin";
   const [detail, setDetail] = useState(null);
   const [forecast, setForecast] = useState(null);
   const [analytics, setAnalytics] = useState(null);

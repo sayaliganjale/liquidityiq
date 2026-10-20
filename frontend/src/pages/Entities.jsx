@@ -14,7 +14,7 @@ const SWATCHES = ["#1B4D3E", "#0A2540", "#12233A", "#2A1A3E", "#3E2A1A", "#1A3E2
 
 export default function Entities() {
   const { user } = useAuth();
-  const canWrite = ["admin", "analyst"].includes(user?.role);
+  const canWrite = user?.role === "admin";
   const [items, setItems] = useState(null);
   const [mode, setMode] = useState(null); // "private" | "public" | edit id
   const [editing, setEditing] = useState(null);
@@ -26,10 +26,10 @@ export default function Entities() {
 
   useEffect(() => {
     const n = params.get("new");
-    if (n === "ticker") setMode("public");
-    if (n === "private") setMode("private");
+    if (canWrite && n === "ticker") setMode("public");
+    if (canWrite && n === "private") setMode("private");
     if (n) setParams({}, { replace: true });
-  }, [params, setParams]);
+  }, [params, setParams, canWrite]);
 
   const remove = async (c) => {
     if (!window.confirm(`Delete ${c.name} and its entire ledger? This cannot be undone.`)) return;
@@ -49,8 +49,9 @@ export default function Entities() {
           <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-slate-400">Portfolio</p>
           <h1 className="mt-2 font-serif text-3xl sm:text-4xl tracking-tight">Entity Management</h1>
           <p className="mt-2 text-sm text-slate-500 max-w-xl">
-            Onboard a live listed company from any global exchange, or create a private entity — each one
-            gets a generated 120-day ledger, bank accounts and AR/AP book ready for forecasting.
+            {canWrite
+              ? "Onboard a live listed company from any global exchange, or create a private entity — each one gets a generated 120-day ledger, bank accounts and AR/AP book ready for forecasting."
+              : "Browse every company tracked on the platform — open one to explore its ledger, 90-day ML cash forecast, scenarios and AI analysis."}
           </p>
         </div>
         {canWrite && (
@@ -104,7 +105,7 @@ export default function Entities() {
                 className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-wider text-slate-500 hover:text-slate-900 transition-colors">
                 Open <ArrowRight size={12} />
               </Link>
-              {canWrite && (c.is_owner || user?.role === "admin") && (
+              {canWrite && (
                 <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                   <button onClick={() => { setEditing(c); setMode("edit"); }}
                     data-testid={`entity-edit-${c.id}`}

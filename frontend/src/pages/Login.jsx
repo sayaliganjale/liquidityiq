@@ -7,8 +7,8 @@ import { ArrowRight, TrendUp } from "@phosphor-icons/react";
 export default function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
-  const [email, setEmail] = useState("admin@liquidityiq.com");
-  const [password, setPassword] = useState("LiquidityIQ2026!");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -92,9 +92,6 @@ export default function Login() {
             <Link to="/register" className="text-slate-900 underline underline-offset-4 hover:text-sky-600 transition-colors" data-testid="login-to-register">
               Create one
             </Link>
-          </p>
-          <p className="mt-8 font-mono text-[10px] text-slate-400 border border-slate-200/70 rounded-lg p-3">
-            Demo · admin@liquidityiq.com · LiquidityIQ2026!
           </p>
         </motion.div>
       </div>
